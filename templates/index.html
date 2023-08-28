@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Camera Images</title>
+    <!-- Add Bootstrap CSS link here -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <div id="status-container" style="height: 20%; overflow-y: auto;">
+        <div id="status-box" style="margin-top: 20px;"></div>
+    </div>
+    <h1>Camera Images</h1>
+    <div id="image-container">
+        {% for group, cameras in data.items() %}
+        <div class="group">
+            <h2>{{ group }}</h2>
+            <div class="camera-list">
+                {% for camera, image_data in cameras.items() %}
+                <div class="callout callout-{{ loop.index % 4 }}">
+                    <h3 class="font-weight-bold">{{ camera }}</h3>
+                    <img src="data:image/jpeg;base64, {{ image_data }}" alt="{{ camera }}" class="img-fluid">
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <script>
+   let lastReloadTime = Date.now(); // Initialize the last reload time
+
+   function updateStatusBox() {
+        fetch('/get_error_messages')
+            .then(response => response.json())
+            .then(messages => {
+                const statusBox = document.getElementById('status-box');
+                if (messages.length > 0) {
+                    statusBox.innerHTML = ''; // Clear previous messages
+                    messages.forEach(message => {
+                        const messageDiv = document.createElement('div');
+                        messageDiv.classList.add('alert', 'alert-danger');
+                        messageDiv.textContent = message;
+                        statusBox.appendChild(messageDiv);
+                    });
+                } else {
+                    statusBox.innerHTML = ''; // Clear previous messages
+                    const noMessagesDiv = document.createElement('div');
+                    noMessagesDiv.classList.add('alert', 'alert-success');
+                    noMessagesDiv.textContent = 'No errors at the moment.';
+                    statusBox.appendChild(noMessagesDiv);
+                }
+
+                // Scroll to the bottom to show the latest message
+                const statusContainer = document.getElementById('status-container');
+                statusContainer.scrollTop = statusContainer.scrollHeight;
+            })
+            .catch(error => {
+                console.error('Error fetching error messages:', error);
+            });
+    }
+function checkAndReload() {
+    const imageContainer = document.getElementById("image-container");
+    const currentTime = Date.now();
+
+    // Check if the container has no child nodes and enough time has passed
+    if (!imageContainer || !imageContainer.hasChildNodes() && currentTime - lastReloadTime > 5000) {
+        lastReloadTime = currentTime; // Update the last reload time
+        location.reload(); // Reload the page
+    }
+}
+
+function updateImages() {
+    fetch('/get_images')
+        .then(response => response.json())
+        .then(images => {
+            const imageContainer = document.getElementById("image-container");
+            imageContainer.innerHTML = ''; // Clear existing images
+            images.forEach(image => {
+                if (!image.group || !image.camera_name || !image.base64_image) {
+                    //console.error('Invalid image data:', image);
+                    //return;
+                }
+                //debug
+                var debug =0 ;
+                console.log(debug);
+                debug++
+                
+
+                const calloutDiv = document.createElement('div');
+                
+                const groupClass = image.group.toLowerCase();
+                calloutDiv.classList.add('callout', 'callout-color-' + groupClass);
+                
+                const cameraName = document.createElement('h3');
+                cameraName.classList.add('font-weight-bold');
+                
+                cameraName.textContent = image.camera_name;
+                
+                const img = document.createElement('img');
+                console.log(image.base64_image)
+                img.src = `data:image/jpeg;base64, ${image.base64_image}`;
+                img.alt = image.camera_name;
+                img.classList.add('img-fluid');
+                calloutDiv.appendChild(cameraName);
+                calloutDiv.appendChild(img);
+                imageContainer.appendChild(calloutDiv);
+            });
+            checkAndReload(); // Check if images need to be reloaded
+        })
+        .catch(error => {
+            console.error('Error fetching images:', error);
+        });
+}
+
+// Call updateImages() initially and set an interval to call it periodically
+updateImages();
+setInterval(updateImages, 3000); // Update every 3 seconds
+setInterval(checkAndReload, 5000); // Check every 5 seconds if a reload
+setInterval(updateStatusBox, 1000); // Update every 5 seconds
+    </script>
+
+    <!-- Add Bootstrap JS and jQuery scripts here -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

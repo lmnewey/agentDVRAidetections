@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Camera Images</title>
+    <!-- Add Bootstrap CSS link here -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <h1>Camera Images</h1>
+    <div id="image-container">
+        {% for group, cameras in data.items() %}
+        <div class="group">
+            <h2>{{ group }}</h2>
+            <div class="camera-list">
+                {% for camera, image_data in cameras.items() %}
+                <div class="callout callout-{{ loop.index % 4 }}">
+                    <h3 class="font-weight-bold">{{ camera }}</h3>
+                    <img src="data:image/jpeg;base64, {{ image_data }}" alt="{{ camera }}" class="img-fluid">
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        function checkAndReload() {
+            const imageContainer = document.getElementById("image-container");
+            if (!imageContainer || !imageContainer.hasChildNodes()) {
+                // Reload the page if image-container has no child elements
+                location.reload();
+            }
+        }
+
+        function updateImages() {
+            fetch('/get_images')
+                .then(response => response.json())
+                .then(images => {
+                    const imageContainer = document.getElementById("image-container");
+                    imageContainer.innerHTML = ''; // Clear existing images
+                    images.forEach(image => {
+                        const calloutDiv = document.createElement('div');
+                        calloutDiv.classList.add('callout', `callout-${image.group.toLowerCase()}`);
+                        const cameraName = document.createElement('h3');
+                        cameraName.classList.add('font-weight-bold');
+                        cameraName.textContent = image.camera_name;
+                        const img = document.createElement('img');
+                        img.src = `data:image/jpeg;base64, ${image.base64_image}`;
+                        img.alt = image.camera_name;
+                        img.classList.add('img-fluid');
+                        calloutDiv.appendChild(cameraName);
+                        calloutDiv.appendChild(img);
+                        imageContainer.appendChild(calloutDiv);
+                    });
+                    checkAndReload(); // Check if images need to be reloaded
+                })
+                .catch(error => {
+                    console.error('Error fetching images:', error);
+                });
+        }
+
+        // Call updateImages() initially and set an interval to call it periodically
+        updateImages();
+        setInterval(updateImages, 3000); // Update every 3 seconds
+        setInterval(checkAndReload, 30000); // Check every 30 seconds if a reload is needed
+    </script>
+
+    <!-- Add Bootstrap JS and jQuery scripts here -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+
+
+<!-- <!DOCTYPE html>
+<html>
+    <head>
+        <title>Camera Images</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <style>
+            /* ... previous styles ... */
+    
+            /* New style for the empty-container message */
+            .empty-container-message {
+                text-align: center;
+                margin-top: 20px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Camera Images</h1>
+        <div id="image-container">
+            {% for group, cameras in data.items() %}
+            <div class="group">
+                <h2>{{ group }}</h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="camera-list">
+                            {% for camera, image_data in cameras.items() %}
+                            <div class="camera" id="{{ camera }}">
+                                <h3>{{ camera }}</h3>
+                                <div class="image-box">
+                                    <!-- ... previous image and callout elements ... -->
+                                </div>
+                                <div class="detection-list">
+                                    <!-- ... previous detection list ... -->
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    
+
+    <script>
+        function updateImages() {
+        fetch('/get_images')
+            .then(response => response.json())
+            .then(images => {
+                images.forEach(image => {
+                    const cameraElement = document.getElementById(image.camera_name);
+                    if (cameraElement) {
+                        const imgElement = cameraElement.querySelector('.image-box img');
+                        if (imgElement) {
+                            imgElement.src = `data:image/jpeg;base64, ${image.image_data}`;
+                        }
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching images:', error);
+            });
+    }
+
+    // Call updateImages() initially and set an interval to call it periodically
+    updateImages();
+    setInterval(updateImages, 3000); // Update every 3 seconds
+
+    // Check if the image container is empty and reload the page if it is
+    function checkAndReload() {
+        const imageContainer = document.getElementById('image-container');
+        if (imageContainer && !imageContainer.hasChildNodes()) {
+            setTimeout(() => {
+                location.reload();
+            }, 5000); // Reload after 5 seconds
+        }
+    }
+
+    // Call checkAndReload() initially and set an interval to call it periodically
+    checkAndReload();
+    setInterval(checkAndReload, 3000); // Check every 3 seconds
+    </script>
+</body>
+</html>
+
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Camera Images</title>
+</head>
+<body>
+    <h1>Camera Images</h1>
+    <div id="image-container">
+        {% for group, cameras in data.items() %}
+        <div class="group">
+            <h2>{{ group }}</h2>
+            <div class="camera-list">
+                {% for camera, image_data in cameras.items() %}
+                <div class="camera" id="{{ camera }}">
+                    <h3>{{ camera }}</h3>
+                    <img src="data:image/jpeg;base64, {{ image_data }}" alt="{{ camera }}">
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <script>
+        function updateImages() {
+            fetch('/get_images')
+                .then(response => response.json())
+                .then(images => {
+                    images.forEach(image => {
+                        const cameraElement = document.getElementById(image.camera_name);
+                        if (!cameraElement) {
+                            // Create the camera element if it doesn't exist
+                            const newCameraElement = document.createElement('div');
+                            newCameraElement.className = 'camera';
+                            newCameraElement.id = image.camera_name;
+    
+                            const h3Element = document.createElement('h3');
+                            h3Element.textContent = image.camera_name;
+                            newCameraElement.appendChild(h3Element);
+    
+                            const imgElement = document.createElement('img');
+                            imgElement.src = `data:image/jpeg;base64, ${image.base64_image}`;
+                            imgElement.alt = image.camera_name;
+                            newCameraElement.appendChild(imgElement);
+    
+                            // Append the new camera element to the appropriate group
+                            const groupElement = document.querySelector(`.group#${image.group}`);
+                            if (groupElement) {
+                                const cameraList = groupElement.querySelector('.camera-list');
+                                cameraList.appendChild(newCameraElement);
+                            }
+                        } else {
+                            // Update the existing image element
+                            const imgElement = cameraElement.querySelector('img');
+                            imgElement.src = `data:image/jpeg;base64, ${image.base64_image}`;
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching images:', error);
+                });
+        }
+    
+        // Call updateImages() initially and set an interval to call it periodically
+        updateImages();
+        setInterval(updateImages, 1000); // Update every 3 seconds
+
+        function checkAndRefresh() {
+        const imageContainer = document.getElementById('image-container');
+        
+        // Check if there are any children in the image container
+        if (imageContainer && imageContainer.children.length === 0) {
+            // If no children are found, refresh the page after 5 seconds
+            setTimeout(() => {
+                location.reload();
+            }, 5000); // 5 seconds in milliseconds
+        }
+    }
+
+    // Call checkAndRefresh() initially and set an interval to call it periodically
+    checkAndRefresh();
+    setInterval(checkAndRefresh, 5000); // Check every 5 seconds
+    </script>
+    
+     <script>
+        function updateImages() {
+            fetch('/get_images')
+                .then(response => response.json())
+                .then(images => {
+                    images.forEach(image => {
+                        const cameraElement = document.getElementById(image.camera_name);
+                        console.log(image);
+                        if (cameraElement) {
+                            const imgElement = cameraElement.querySelector('img');
+                            imgElement.src = `data:image/jpeg;base64, ${image.base64_image}`;
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching images:', error);
+                });
+        }
+
+        // Call updateImages() initially and set an interval to call it periodically
+        updateImages();
+        setInterval(updateImages, 3000); // Update every 3 seconds
+    </script> -->
+
+    
+<!-- <script>
+    function updateImages() {
+        fetch('/get_images')
+            .then(response => response.json())
+            .then(images => {
+                images.forEach(image => {
+                    const cameraElement = document.getElementById(image.camera_name);
+                    if (!cameraElement) {
+                        // Create the camera element if it doesn't exist
+                        const newCameraElement = document.createElement('div');
+                        newCameraElement.className = 'camera';
+                        newCameraElement.id = image.camera_name;
+
+                        const h3Element = document.createElement('h3');
+                        h3Element.textContent = image.camera_name;
+                        newCameraElement.appendChild(h3Element);
+
+                        const imgElement = document.createElement('img');
+                        imgElement.src = `data:image/jpeg;base64, ${image.base64_image}`;
+                        imgElement.alt = image.camera_name;
+                        newCameraElement.appendChild(imgElement);
+
+                        // Append the new camera element to the appropriate group
+                        const groupElement = document.querySelector(`.group#${image.group}`);
+                        if (groupElement) {
+                            const cameraList = groupElement.querySelector('.camera-list');
+                            cameraList.appendChild(newCameraElement);
+                        }
+                    } else {
+                        // Update the existing image element
+                        const imgElement = cameraElement.querySelector('img');
+                        imgElement.src = `data:image/jpeg;base64, ${image.base64_image}`;
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching images:', error);
+            });
+    }
+
+    // Call updateImages() initially and set an interval to call it periodically
+    updateImages();
+    setInterval(updateImages, 3000); // Update every 3 seconds
+</script> -->
+<!-- </body>
+</html> -->  
